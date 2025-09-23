@@ -1,17 +1,42 @@
 # Python
 .venv/
 __pycache__/
-*.pyc
+*.py[cod]
 .ipynb_checkpoints/
-.vscode/
+.python-version
+
+# Packaging / builds
+dist/
+build/
+*.egg-info/
+
+# Testing / tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Logs & experiment artifacts
 logs/
 runs/
 plots/
-# hugging face
-.cache/
-hf_cache/
-.bin
-*.bin
-*.safetensors
+
+# Editors/IDEs
+.vscode/
+.idea/
+.vs/
+.history/
+
+# OS junk
 .DS_Store
 Thumbs.db
+
+# Model / large artifacts (inside repo)
+.cache/
+hf_cache/
+*.bin
+*.safetensors
+
+# Keep sample data JSONL in repo (optional)
+!data/*.jsonl
