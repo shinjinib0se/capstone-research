@@ -1,0 +1,17 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.vscode/
+logs/
+runs/
+plots/
+# hugging face
+.cache/
+hf_cache/
+.bin
+*.bin
+*.safetensors
+.DS_Store
+Thumbs.db
