@@ -8,3 +8,12 @@ pandas
 numpy
 trl
 bitsandbytes
+
+# For PPO and DPO
+transformers>=4.41
+datasets>=2.19
+accelerate>=0.33
+trl>=0.9
+peft>=0.11
+bitsandbytes>=0.43 ; platform_system=="Linux"
+huggingface_hub>=0.24
