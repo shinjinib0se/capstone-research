@@ -68,7 +68,7 @@ trainer = DPOTrainer(
     # tokenizer=tok,
     # max_length=args.max_len,
     # max_prompt_length=args.max_len,
-    dpo_config=cfg,
+    beta = 0.3,
 )
 
 # this will create a training_log.csv file with loss values per step and epoch - can be plotted later with:
