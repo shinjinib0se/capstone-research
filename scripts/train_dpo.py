@@ -58,7 +58,7 @@ trainer = DPOTrainer(
         num_train_epochs=args.epochs,
         gradient_accumulation_steps=1,
         save_strategy="epoch",
-        evaluation_strategy="epoch",
+        eval_strategy="epoch",
         logging_steps=50,
         report_to="none"
     ),
