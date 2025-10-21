@@ -42,8 +42,8 @@ policy.gradient_checkpointing_enable()
 
 cfg = DPOConfig(
     beta=0.3,  # strength of preference - lets try 0.3-0.5 for now (no larger than 1 tho)
-    max_length_prompt=args.max_len,
-    max_length=args.max_len,
+    # max_length_prompt=args.max_len,
+    # max_length=args.max_len,
     # loss_type = "sigmoid", # explicit. this helps avoid softmax temperature damping
 )
 
