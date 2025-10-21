@@ -41,9 +41,10 @@ policy.config.use_cache = False
 policy.gradient_checkpointing_enable()
 
 cfg = DPOConfig(
-    beta=0.1,                      # strength of preference
-    max_length_prompt=args.max_len,
-    max_length=args.max_len,
+    beta=0.3,  # strength of preference - lets try 0.3-0.5 for now (no larger than 1 tho)
+    # max_length_prompt=args.max_len,
+    # max_length=args.max_len,
+    # loss_type = "sigmoid", # explicit. this helps avoid softmax temperature damping
 )
 
 trainer = DPOTrainer(
@@ -69,7 +70,47 @@ trainer = DPOTrainer(
     max_prompt_length=args.max_len,
 )
 
+# this will create a training_log.csv file with loss values per step and epoch - can be plotted later with:
+
+# import pandas as pd, matplotlib.pyplot as plt
+# df = pd.read_csv("runs/dpo_olmo2/training_log.csv")
+# plt.plot(df["step"], df["loss"])
+# plt.xlabel("Step"); plt.ylabel("Loss"); plt.title("DPO Loss Curve")
+# plt.show()
+
+
+import csv, os
+logfile = os.path.join(args.out, "training_log.csv")
+os.makedirs(args.out, exist_ok=True)
+
+with open(logfile, "w", newline="", encoding="utf-8") as f:
+    writer = csv.writer(f)
+    writer.writerow(["step", "epoch", "loss"])
+
+def log_callback(state, control, **kwargs):
+    if state.log_history and "loss" in state.log_history[-1]:
+        step = state.log_history[-1].get("step", 0)
+        loss = state.log_history[-1]["loss"]
+        epoch = state.epoch
+        with open(logfile, "a", newline="", encoding="utf-8") as f:
+            csv.writer(f).writerow([step, epoch, loss])
+
+trainer.add_callback(type("Logger", (), {"on_log": log_callback}))
+
+
+
 trainer.train()
 trainer.save_model(args.out)
+
+# this will automatically print the preference accuracy and mean log-prob margin for the fine-tuned checkpoint to compare immediately with base model
+from scripts.eval_preference_accuracy import main as eval_main
+import sys
+sys.argv = [
+    "eval_preference_accuracy.py",
+    "--model", args.out,
+    "--pairs", args.eval,
+]
+eval_main()
+
 tok.save_pretrained(args.out)
 print("Saved DPO model to", args.out)
