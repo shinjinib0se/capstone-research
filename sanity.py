@@ -6,7 +6,7 @@ import platform
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-MODEL_ID = "/scratch/dpj7jx/huggingface/models--allenai--OLMo-2-0425-1B-SFT"  # small & fast; you can swap to 7B later
+MODEL_ID = "/scratch/dpj7jx/huggingface/models--allenai--OLMo-2-0425-1B-SFT/snapshots/e648c1b5b98deb274536dd6decea0148777d31c9"  # small & fast; you can swap to 7B later
 
 # --- runtime / device setup ---
 cuda = torch.cuda.is_available()
