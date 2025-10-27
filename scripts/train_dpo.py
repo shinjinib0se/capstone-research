@@ -3,8 +3,8 @@ import json
 import os
 import csv
 from datasets import Dataset
-from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments
-from trl import DPOTrainer
+#from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments
+from trl import DPOTrainer, DPOConfig 
 
 # -------------------------------
 # Helper function to load pairs
@@ -59,7 +59,7 @@ policy.gradient_checkpointing_enable()
 # -------------------------------
 # Training Arguments
 # -------------------------------
-training_args = TrainingArguments(
+training_args = DPOConfig(
     output_dir=args.out,
     learning_rate=args.lr,
     per_device_train_batch_size=args.bsz,
@@ -67,13 +67,11 @@ training_args = TrainingArguments(
     num_train_epochs=args.epochs,
     gradient_accumulation_steps=1,
     save_strategy="epoch",
-    eval_strategy="epoch",
+    evaluation_strategy="epoch",  # note the correct kwarg here
     logging_steps=50,
     report_to="none",
-    fp16=True,  # mixed precision if supported
-    remove_unused_columns=False
+    beta=0.3
 )
-
 # -------------------------------
 # Trainer
 # -------------------------------
@@ -83,10 +81,8 @@ trainer = DPOTrainer(
     args=training_args,
     train_dataset=train_ds,
     eval_dataset=eval_ds,
-    # max_length=args.max_len,
-    # max_prompt_length=args.max_len
 )
-trainer.beta = 0.3 
+
 
 # -------------------------------
 # CSV Logger
