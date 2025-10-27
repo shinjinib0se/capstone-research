@@ -40,35 +40,37 @@ policy = AutoModelForCausalLM.from_pretrained(args.base)
 policy.config.use_cache = False
 policy.gradient_checkpointing_enable()
 
-cfg = DPOConfig(
-    beta=0.3,  # strength of preference - lets try 0.3-0.5 for now (no larger than 1 tho)
-    # max_length_prompt=args.max_len,
-    # max_length=args.max_len,
-    # loss_type = "sigmoid", # explicit. this helps avoid softmax temperature damping
+# cfg = DPOConfig(
+#     beta=0.3,  # strength of preference - lets try 0.3-0.5 for now (no larger than 1 tho)
+#     # max_length_prompt=args.max_len,
+#     # max_length=args.max_len,
+#     # loss_type = "sigmoid", # explicit. this helps avoid softmax temperature damping
+# )
+
+# build a DPOConfig object instead of TrainingArguments
+training_config = DPOConfig(
+    output_dir=args.out,
+    learning_rate=args.lr,
+    per_device_train_batch_size=args.bsz,
+    per_device_eval_batch_size=args.bsz,
+    num_train_epochs=args.epochs,
+    gradient_accumulation_steps=1,
+    save_strategy="epoch",
+    evaluation_strategy="epoch",   # fix: eval_strategy -> evaluation_strategy
+    logging_steps=50,
+    report_to="none",
+    beta=0.3,  # can be passed directly here
 )
 
 trainer = DPOTrainer(
     model=policy,
-    ref_model=None,                # use implicit frozen copy
-    args=TrainingArguments(
-        output_dir=args.out,
-        learning_rate=args.lr,
-        per_device_train_batch_size=args.bsz,
-        per_device_eval_batch_size=args.bsz,
-        num_train_epochs=args.epochs,
-        gradient_accumulation_steps=1,
-        save_strategy="epoch",
-        eval_strategy="epoch",
-        logging_steps=50,
-        report_to="none"
-    ),
-    #beta=cfg.beta,
+    ref_model=None,
+    args=training_config,   #  use the DPOConfig here
     train_dataset=train_ds,
     eval_dataset=eval_ds,
-    # tokenizer=tok,
-    # max_length=args.max_len,
-    # max_prompt_length=args.max_len,
-    # beta = 0.3,
+    tokenizer=tok,
+    max_length=args.max_len,
+    max_prompt_length=args.max_len,
 )
 
 # this will create a training_log.csv file with loss values per step and epoch - can be plotted later with:
