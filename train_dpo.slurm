@@ -1,25 +1,31 @@
 #!/bin/bash
-#SBATCH --job-name=dpo_olmo2
-#SBATCH --partition=gpu
-#SBATCH --gres=gpu:a100:1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=48G
-#SBATCH --time=24:00:00
-#SBATCH --output=logs/dpo_%j.out
-#SBATCH --error=logs/dpo_%j.err
+#SBATCH --job-name=dpo-debug
+#SBATCH --partition=gpu-v100
+#SBATCH --gres=gpu:1
+#SBATCH --mem=64G
+#SBATCH --time=02:00:00
+#SBATCH --output=logs/dpo-debug-%j.out
+#SBATCH --error=logs/dpo-debug-%j.err
 
-module load miniforge/24.3.0-py3.11
-conda activate cast_dpo
+# Load required modules
+module load python/3.11.4
+module load bzip2
 
-cd ~/capstone-research
+# Activate the correct virtual environment
+cd /scratch/dpj7jx/capstone-research
+source .venv/bin/activate
 
+# (Optional safeguard) — install dependencies if missing
+pip install --upgrade pip
+pip install click wandb
+
+#  Run training
 python scripts/train_dpo.py \
   --train data/rlhf_pairs_train.jsonl \
   --eval data/rlhf_pairs_eval.jsonl \
-  --base allenai/OLMo-2-1B \
-  --out runs/dpo_olmo2_1b_beta05 \
-  --epochs 2 \
-  --bsz 2 \
-  --lr 1e-5 \
-  --limit_train 2000 \
-  --limit_eval 200
+  --base /scratch/dpj7jx/huggingface/models--allenai--OLMo-2-0425-1B-SFT/snapshots/0d85a3d037876ce6ac7d4311d994400fc66ac27f \
+  --out out/debug-run \
+  --epochs 1 \
+  --bsz 1 \
+  --limit_train 50 \
+  --limit_eval 10
