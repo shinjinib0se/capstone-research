@@ -6,7 +6,7 @@ import platform
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-MODEL_ID = "allenai/OLMo-2-0425-1B-SFT"  # small & fast; you can swap to 7B later
+MODEL_ID = "/scratch/dpj7jx/huggingface/models--allenai--OLMo-2-0425-1B-SFT"  # small & fast; you can swap to 7B later
 
 # --- runtime / device setup ---
 cuda = torch.cuda.is_available()
@@ -20,13 +20,13 @@ except Exception:
     use_4bit = False  # fall back to full precision load
 
 # --- load tokenizer & model ---
-tok = AutoTokenizer.from_pretrained(MODEL_ID, use_fast=True)
+tok = AutoTokenizer.from_pretrained(MODEL_ID, use_fast=True, local_files_only=True)
 
 load_kwargs = dict(device_map="auto", torch_dtype=dtype)
 if cuda and use_4bit:
     load_kwargs["load_in_4bit"] = True  # comment this out if you hit bnb/CUDA issues
 
-model = AutoModelForCausalLM.from_pretrained(MODEL_ID, **load_kwargs)
+model = AutoModelForCausalLM.from_pretrained(MODEL_ID, local_files_only = True, **load_kwargs)
 model.eval()
 
 # --- build a minimal chat prompt ---
