@@ -83,7 +83,6 @@ trainer = DPOTrainer(
     args=training_args,
     train_dataset=train_ds,
     eval_dataset=eval_ds,
-    tokenizer=tok,
     beta=0.3,
     max_length=args.max_len,
     max_prompt_length=args.max_len
