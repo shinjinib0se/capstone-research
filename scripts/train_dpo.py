@@ -1,14 +1,21 @@
-import argparse, json
+import argparse
+import json
+import os
+import csv
 from datasets import Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments
-from trl import DPOTrainer, DPOConfig
+from trl import DPOTrainer
 
+# -------------------------------
+# Helper function to load pairs
+# -------------------------------
 def load_pairs(path, limit=None):
-    rows=[]
+    rows = []
     with open(path, "r", encoding="utf-8") as f:
         for i, line in enumerate(f):
-            if limit and i>=limit: break
-            ex=json.loads(line)
+            if limit and i >= limit:
+                break
+            ex = json.loads(line)
             rows.append({
                 "prompt": ex["prompt"],
                 "chosen": ex["chosen"],
@@ -16,39 +23,43 @@ def load_pairs(path, limit=None):
             })
     return Dataset.from_list(rows)
 
+# -------------------------------
+# CLI arguments
+# -------------------------------
 ap = argparse.ArgumentParser()
 ap.add_argument("--train", required=True)
-ap.add_argument("--eval",  required=True)
-ap.add_argument("--base",  default="gpt2")  # tiny for CPU sanity
-ap.add_argument("--out",   default="runs/dpo_gpt2")
+ap.add_argument("--eval", required=True)
+ap.add_argument("--base", default="gpt2")
+ap.add_argument("--out", default="runs/dpo_gpt2")
 ap.add_argument("--limit_train", type=int, default=2000)
-ap.add_argument("--limit_eval",  type=int, default=200)
+ap.add_argument("--limit_eval", type=int, default=200)
 ap.add_argument("--epochs", type=float, default=1.0)
-ap.add_argument("--bsz",    type=int, default=2)
-ap.add_argument("--lr",     type=float, default=5e-6)
-ap.add_argument("--max_len",type=int, default=512)
+ap.add_argument("--bsz", type=int, default=2)
+ap.add_argument("--lr", type=float, default=5e-6)
+ap.add_argument("--max_len", type=int, default=512)
 args = ap.parse_args()
 
+# -------------------------------
+# Tokenizer and datasets
+# -------------------------------
 tok = AutoTokenizer.from_pretrained(args.base)
 if tok.pad_token_id is None:
     tok.pad_token = tok.eos_token
 
 train_ds = load_pairs(args.train, args.limit_train)
-eval_ds  = load_pairs(args.eval,  args.limit_eval)
+eval_ds = load_pairs(args.eval, args.limit_eval)
 
+# -------------------------------
+# Model
+# -------------------------------
 policy = AutoModelForCausalLM.from_pretrained(args.base)
 policy.config.use_cache = False
 policy.gradient_checkpointing_enable()
 
-# cfg = DPOConfig(
-#     beta=0.3,  # strength of preference - lets try 0.3-0.5 for now (no larger than 1 tho)
-#     # max_length_prompt=args.max_len,
-#     # max_length=args.max_len,
-#     # loss_type = "sigmoid", # explicit. this helps avoid softmax temperature damping
-# )
-
-# build a DPOConfig object instead of TrainingArguments
-training_config = DPOConfig(
+# -------------------------------
+# Training Arguments
+# -------------------------------
+training_args = TrainingArguments(
     output_dir=args.out,
     learning_rate=args.lr,
     per_device_train_batch_size=args.bsz,
@@ -56,39 +67,35 @@ training_config = DPOConfig(
     num_train_epochs=args.epochs,
     gradient_accumulation_steps=1,
     save_strategy="epoch",
-    evaluation_strategy="epoch",   # fix: eval_strategy -> evaluation_strategy
+    evaluation_strategy="epoch",
     logging_steps=50,
     report_to="none",
-    beta=0.3,  # can be passed directly here
+    fp16=True,  # mixed precision if supported
+    remove_unused_columns=False
 )
 
+# -------------------------------
+# Trainer
+# -------------------------------
 trainer = DPOTrainer(
     model=policy,
-    ref_model=None,
-    args=training_config,   #  use the DPOConfig here
+    ref_model=None,  # implicit frozen reference
+    args=training_args,
     train_dataset=train_ds,
     eval_dataset=eval_ds,
     tokenizer=tok,
+    beta=0.3,
     max_length=args.max_len,
-    max_prompt_length=args.max_len,
+    max_prompt_length=args.max_len
 )
 
-# this will create a training_log.csv file with loss values per step and epoch - can be plotted later with:
-
-# import pandas as pd, matplotlib.pyplot as plt
-# df = pd.read_csv("runs/dpo_olmo2/training_log.csv")
-# plt.plot(df["step"], df["loss"])
-# plt.xlabel("Step"); plt.ylabel("Loss"); plt.title("DPO Loss Curve")
-# plt.show()
-
-
-import csv, os
+# -------------------------------
+# CSV Logger
+# -------------------------------
 logfile = os.path.join(args.out, "training_log.csv")
 os.makedirs(args.out, exist_ok=True)
-
 with open(logfile, "w", newline="", encoding="utf-8") as f:
-    writer = csv.writer(f)
-    writer.writerow(["step", "epoch", "loss"])
+    csv.writer(f).writerow(["step", "epoch", "loss"])
 
 def log_callback(state, control, **kwargs):
     if state.log_history and "loss" in state.log_history[-1]:
@@ -100,12 +107,16 @@ def log_callback(state, control, **kwargs):
 
 trainer.add_callback(type("Logger", (), {"on_log": log_callback}))
 
-
-
+# -------------------------------
+# Train and save
+# -------------------------------
 trainer.train()
 trainer.save_model(args.out)
+tok.save_pretrained(args.out)
 
-# this will automatically print the preference accuracy and mean log-prob margin for the fine-tuned checkpoint to compare immediately with base model
+# -------------------------------
+# Evaluate preference accuracy
+# -------------------------------
 from scripts.eval_preference_accuracy import main as eval_main
 import sys
 sys.argv = [
@@ -115,5 +126,4 @@ sys.argv = [
 ]
 eval_main()
 
-tok.save_pretrained(args.out)
-print("Saved DPO model to", args.out)
+print(f"✅ Saved DPO model to {args.out}")
