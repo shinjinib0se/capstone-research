@@ -84,7 +84,7 @@ trainer = DPOTrainer(
     train_dataset=train_ds,
     eval_dataset=eval_ds,
     # max_length=args.max_len,
-    max_prompt_length=args.max_len
+    # max_prompt_length=args.max_len
 )
 trainer.beta = 0.3 
 
