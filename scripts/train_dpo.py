@@ -110,23 +110,16 @@ class LoggerCallback:
                 csv.writer(f).writerow([step, epoch, loss])
 
     # Add these no-op methods so Trainer doesn't error out
-    def on_train_begin(self, *args, **kwargs):
-            pass
-
-    def on_train_end(self, *args, **kwargs):
-        pass
-
-    def on_epoch_begin(self, *args, **kwargs):
-        pass
-
-    def on_epoch_end(self, *args, **kwargs):
-        pass
-
-    def on_step_begin(self, *args, **kwargs):
-        pass
-
-    def on_step_end(self, *args, **kwargs):
-        pass
+    def on_train_begin(self, *args, **kwargs): pass
+    def on_train_end(self, *args, **kwargs):pass
+    def on_epoch_begin(self, *args, **kwargs): pass
+    def on_epoch_end(self, *args, **kwargs): pass
+    def on_step_begin(self, *args, **kwargs): pass
+    def on_step_end(self, *args, **kwargs): pass
+    def on_pre_optimizer_step(self, *args, **kwargs): pass
+    def on_save(self, *args, **kwargs): pass
+    def on_evaluate(self, *args, **kwargs): pass
+    def on_predict(self, *args, **kwargs): pass
 
 trainer.add_callback(LoggerCallback())
 
