@@ -3,7 +3,7 @@ import json
 import os
 import csv
 from datasets import Dataset
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, TrainerCallback 
 from trl import DPOTrainer, DPOConfig 
 
 # -------------------------------
@@ -100,7 +100,12 @@ with open(logfile, "w", newline="", encoding="utf-8") as f:
 #         with open(logfile, "a", newline="", encoding="utf-8") as f:
 #             csv.writer(f).writerow([step, epoch, loss])
 
-class LoggerCallback:
+logfile = os.path.join(args.out, "training_log.csv")
+os.makedirs(args.out, exist_ok=True)
+with open(logfile, "w", newline="", encoding="utf-8") as f:
+    csv.writer(f).writerow(["step", "epoch", "loss"])
+
+class LoggerCallback(TrainerCallback): 
     def on_log(self, args, state, control, **kwargs):
         if state.log_history and "loss" in state.log_history[-1]:
             step = state.log_history[-1].get("step", 0)
@@ -110,17 +115,17 @@ class LoggerCallback:
                 csv.writer(f).writerow([step, epoch, loss])
 
     # Add these no-op methods so Trainer doesn't error out
-    def on_train_begin(self, *args, **kwargs): pass
-    def on_train_end(self, *args, **kwargs):pass
-    def on_epoch_begin(self, *args, **kwargs): pass
-    def on_epoch_end(self, *args, **kwargs): pass
-    def on_step_begin(self, *args, **kwargs): pass
-    def on_step_end(self, *args, **kwargs): pass
-    def on_pre_optimizer_step(self, *args, **kwargs): pass
-    def on_optimizer_step(self, *args, **kwargs): pass
-    def on_save(self, *args, **kwargs): pass
-    def on_evaluate(self, *args, **kwargs): pass
-    def on_predict(self, *args, **kwargs): pass
+    # def on_train_begin(self, *args, **kwargs): pass
+    # def on_train_end(self, *args, **kwargs):pass
+    # def on_epoch_begin(self, *args, **kwargs): pass
+    # def on_epoch_end(self, *args, **kwargs): pass
+    # def on_step_begin(self, *args, **kwargs): pass
+    # def on_step_end(self, *args, **kwargs): pass
+    # def on_pre_optimizer_step(self, *args, **kwargs): pass
+    # def on_optimizer_step(self, *args, **kwargs): pass
+    # def on_save(self, *args, **kwargs): pass
+    # def on_evaluate(self, *args, **kwargs): pass
+    # def on_predict(self, *args, **kwargs): pass
 
 trainer.add_callback(LoggerCallback())
 
