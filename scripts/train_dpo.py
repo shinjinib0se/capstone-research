@@ -100,7 +100,26 @@ def log_callback(state, control, **kwargs):
         with open(logfile, "a", newline="", encoding="utf-8") as f:
             csv.writer(f).writerow([step, epoch, loss])
 
-trainer.add_callback(type("Logger", (), {"on_log": log_callback}))
+class LoggerCallback:
+    def on_log(self, args, state, control, **kwargs):
+        if state.log_history and "loss" in state.log_history[-1]:
+            step = state.log_history[-1].get("step", 0)
+            loss = state.log_history[-1]["loss"]
+            epoch = state.epoch
+            with open(logfile, "a", newline="", encoding="utf-8") as f:
+                csv.writer(f).writerow([step, epoch, loss])
+
+    # Add these no-op methods so Trainer doesn't error out
+    def on_train_begin(self, *args, **kwargs):
+        pass
+
+    def on_train_end(self, *args, **kwargs):
+        pass
+
+    def on_epoch_end(self, *args, **kwargs):
+        pass
+
+trainer.add_callback(LoggerCallback())
 
 # -------------------------------
 # Train and save
