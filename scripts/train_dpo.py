@@ -92,13 +92,13 @@ os.makedirs(args.out, exist_ok=True)
 with open(logfile, "w", newline="", encoding="utf-8") as f:
     csv.writer(f).writerow(["step", "epoch", "loss"])
 
-def log_callback(state, control, **kwargs):
-    if state.log_history and "loss" in state.log_history[-1]:
-        step = state.log_history[-1].get("step", 0)
-        loss = state.log_history[-1]["loss"]
-        epoch = state.epoch
-        with open(logfile, "a", newline="", encoding="utf-8") as f:
-            csv.writer(f).writerow([step, epoch, loss])
+# def log_callback(state, control, **kwargs):
+#     if state.log_history and "loss" in state.log_history[-1]:
+#         step = state.log_history[-1].get("step", 0)
+#         loss = state.log_history[-1]["loss"]
+#         epoch = state.epoch
+#         with open(logfile, "a", newline="", encoding="utf-8") as f:
+#             csv.writer(f).writerow([step, epoch, loss])
 
 class LoggerCallback:
     def on_log(self, args, state, control, **kwargs):
@@ -111,12 +111,21 @@ class LoggerCallback:
 
     # Add these no-op methods so Trainer doesn't error out
     def on_train_begin(self, *args, **kwargs):
-        pass
+            pass
 
     def on_train_end(self, *args, **kwargs):
         pass
 
+    def on_epoch_begin(self, *args, **kwargs):
+        pass
+
     def on_epoch_end(self, *args, **kwargs):
+        pass
+
+    def on_step_begin(self, *args, **kwargs):
+        pass
+
+    def on_step_end(self, *args, **kwargs):
         pass
 
 trainer.add_callback(LoggerCallback())
