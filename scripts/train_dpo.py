@@ -1,11 +1,12 @@
 import argparse
 import json
 import os
+import sys
 import csv
 from datasets import Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, TrainerCallback 
 from trl import DPOTrainer, DPOConfig 
-
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # -------------------------------
 # Helper function to load pairs
 # -------------------------------
