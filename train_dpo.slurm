@@ -25,7 +25,7 @@ python scripts/train_dpo.py \
   --eval data/rlhf_pairs_eval.jsonl \
   --base /scratch/dpj7jx/huggingface/models--allenai--OLMo-2-0425-1B-SFT/snapshots/0d85a3d037876ce6ac7d4311d994400fc66ac27f \
   --out out/debug-run \
-  --epochs 1 \
+  --epochs 5 \
   --bsz 1 \
   --limit_train 50 \
   --limit_eval 10
