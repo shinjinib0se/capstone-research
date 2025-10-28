@@ -117,6 +117,7 @@ class LoggerCallback:
     def on_step_begin(self, *args, **kwargs): pass
     def on_step_end(self, *args, **kwargs): pass
     def on_pre_optimizer_step(self, *args, **kwargs): pass
+    def on_optimizer_step(self, *args, **kwargs): pass
     def on_save(self, *args, **kwargs): pass
     def on_evaluate(self, *args, **kwargs): pass
     def on_predict(self, *args, **kwargs): pass
