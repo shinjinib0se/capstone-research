@@ -68,7 +68,7 @@ training_args = DPOConfig(
     gradient_accumulation_steps=1,
     save_strategy="epoch",
     eval_strategy="epoch",  # note the correct kwarg here
-    logging_steps=50,
+    logging_steps=1,
     report_to="none",
     beta=0.3
 )
