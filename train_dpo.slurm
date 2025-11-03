@@ -19,13 +19,23 @@ source .venv/bin/activate
 pip install --upgrade pip
 pip install click wandb
 
-#  Run training
+#  Run training (diet version)
+# python scripts/train_dpo.py \
+#   --train data/rlhf_pairs_train.jsonl \
+#   --eval data/rlhf_pairs_eval.jsonl \
+#   --base /scratch/dpj7jx/huggingface/models--allenai--OLMo-2-0425-1B-SFT/snapshots/0d85a3d037876ce6ac7d4311d994400fc66ac27f \
+#   --out out/debug-run \
+#   --epochs 5 \
+#   --bsz 1 \
+#   --limit_train 50 \
+#   --limit_eval 10
+
+
 python scripts/train_dpo.py \
   --train data/rlhf_pairs_train.jsonl \
   --eval data/rlhf_pairs_eval.jsonl \
-  --base /scratch/dpj7jx/huggingface/models--allenai--OLMo-2-0425-1B-SFT/snapshots/0d85a3d037876ce6ac7d4311d994400fc66ac27f \
-  --out out/debug-run \
-  --epochs 5 \
-  --bsz 1 \
-  --limit_train 50 \
-  --limit_eval 10
+  --base models/olmo2-1b  \
+  --out runs/dpo_olmo2_1b_full \
+  --epochs 2 \
+  --bsz 2 \
+  --lr 5e-6
